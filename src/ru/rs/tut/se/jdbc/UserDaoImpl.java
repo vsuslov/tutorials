@@ -12,7 +12,6 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Properties;
 
 /**
  *
@@ -20,24 +19,36 @@ import java.util.Properties;
  */
 public class UserDaoImpl implements UserDao {
 
-    Properties properties;
+    private static String DRIVER_NAME = "org.apache.derby.jdbc.ClientDriver";
 
-    {
-        properties = new Properties();
-        properties.setProperty("JDBC_URL", "jdbc:derby://localhost:1527/QQ");
-        properties.setProperty("LOGIN", "root");
-        properties.setProperty("PASS", "123");
+    public static synchronized void initDriver(String name) {
+        try {
+            Class.forName(name);
+        } catch (ClassNotFoundException cnf) {
+
+        }
+
+
+    static {
+        initDriver("org.apache.derby.jdbc.ClientDriver");
     }
 
     @Override
     public List<User> selectAll() throws DBException {
+        System.out.println("using selectall");
         Connection connection = getConnection();
+        if (connection != null) {
+            System.out.println("gooooon");
+        }
         Statement statement = null;
         ResultSet resultSet = null;
         try {
             connection.setTransactionIsolation(Connection.TRANSACTION_SERIALIZABLE);
             connection.setAutoCommit(false);
             statement = connection.createStatement();
+            if (statement != null) {
+                System.out.println("goon");
+            }
             resultSet = statement.executeQuery("SELECT id,login,email FROM USERS");
             List<User> result = new ArrayList<>();
             while (resultSet.next()) {
@@ -47,6 +58,7 @@ public class UserDaoImpl implements UserDao {
                 User user = new User(id);
                 user.setLogin(login);
                 user.setEmail(email);
+                System.out.println("User:" + user);
                 result.add(user);
             }
             connection.commit();
@@ -73,7 +85,7 @@ public class UserDaoImpl implements UserDao {
 
     private Connection getConnection() throws DBException {
         try {
-            return DriverManager.getConnection(properties.getProperty("JDBC_URL"), properties.getProperty("LOGIN"), properties.getProperty("PASS"));
+            return DriverManager.getConnection("jdbc:derby://localhost:1527/QQ", "root", "123");
         } catch (SQLException sql) {
             throw new DBException("can't get Connection", sql);
         }
