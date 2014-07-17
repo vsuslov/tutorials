@@ -20,55 +20,60 @@ import java.util.List;
 public class UserDaoImpl implements UserDao {
 
     private static String DRIVER_NAME = "org.apache.derby.jdbc.ClientDriver";
+    private Connection connection;
 
-    public static synchronized void initDriver(String name) {
+    {
+        init();
+    }
+
+    public void init() {
+        System.out.println("INIT");
         try {
-            Class.forName(name);
-        } catch (ClassNotFoundException cnf) {
+            Class.forName("org.apache.derby.jdbc.ClientDriver");
+            connection = DriverManager.getConnection("jdbc:derby://localhost:1527/QQ", "root", "123");
+        } catch (ClassNotFoundException | SQLException cnf) {
 
         }
 
-
-    static {
-        initDriver("org.apache.derby.jdbc.ClientDriver");
     }
 
     @Override
     public List<User> selectAll() throws DBException {
-        System.out.println("using selectall");
-        Connection connection = getConnection();
-        if (connection != null) {
-            System.out.println("gooooon");
-        }
+
         Statement statement = null;
         ResultSet resultSet = null;
-        try {
-            connection.setTransactionIsolation(Connection.TRANSACTION_SERIALIZABLE);
-            connection.setAutoCommit(false);
-            statement = connection.createStatement();
-            if (statement != null) {
-                System.out.println("goon");
+        if (connection != null) {
+            try {
+                connection.setTransactionIsolation(Connection.TRANSACTION_SERIALIZABLE);
+                connection.setAutoCommit(false);
+                statement = connection.createStatement();
+                if (statement != null) {
+                    System.out.println("goon");
+                }
+                resultSet = statement.executeQuery("SELECT id,login,email FROM USERS");
+                List<User> result = new ArrayList<>();
+                while (resultSet.next()) {
+                    int id = resultSet.getInt("id");
+                    String login = resultSet.getString("login");
+                    String email = resultSet.getString("email");
+                    User user = new User(id);
+                    user.setLogin(login);
+                    user.setEmail(email);
+                    System.out.println("User:" + user);
+                    result.add(user);
+                }
+                connection.commit();
+                return result;
+            } catch (SQLException de) {
+                rbQuietly(connection);
+            } finally {
+                closeQuietly(resultSet);
+                closeQuietly(statement);
+                closeQuietly(connection);
             }
-            resultSet = statement.executeQuery("SELECT id,login,email FROM USERS");
-            List<User> result = new ArrayList<>();
-            while (resultSet.next()) {
-                int id = resultSet.getInt("id");
-                String login = resultSet.getString("login");
-                String email = resultSet.getString("email");
-                User user = new User(id);
-                user.setLogin(login);
-                user.setEmail(email);
-                System.out.println("User:" + user);
-                result.add(user);
-            }
-            connection.commit();
-            return result;
-        } catch (SQLException de) {
-            rbQuietly(connection);
-        } finally {
-            closeQuietly(resultSet);
-            closeQuietly(statement);
-            closeQuietly(connection);
+
+        } else {
+            System.out.println("Connection is NULL");
         }
         return new ArrayList<>();
     }

@@ -6,6 +6,7 @@
 package ru.rs.tut.se.jdbc;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  *
@@ -14,14 +15,14 @@ import java.util.List;
 public class Program {
 
     public static void main(String[] args) {
-        UserDao dao = new UserDaoImpl();
-        try {
-            List<User> list = dao.selectAll();
-            list.stream().forEach((u) -> {
-                System.out.println(u);
-            });
-        } catch (DBException e) {
+        GeneralDao<Point> dao = new PointDao();
 
-        }
+        Point p = new Point(2);
+        p.setX(1);
+        p.setY(3);
+        dao.add(p);
+        List<Point> points = dao.selectAll();
+        System.out.println(points.stream().collect(Collectors.counting()).intValue());
+
     }
 }
