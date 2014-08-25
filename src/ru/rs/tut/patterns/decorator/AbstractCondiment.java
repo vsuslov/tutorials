@@ -3,13 +3,16 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package ru.rs.tut.patterns.observer;
+package ru.rs.tut.patterns.decorator;
 
 /**
  *
  * @author Admin
  */
-public interface Observer {
+public abstract class AbstractCondiment extends Beverage {
 
-    public void update(int c);
+    public AbstractCondiment(Beverage b) {
+        beverage = b;
+    }
+    Beverage beverage;
 }

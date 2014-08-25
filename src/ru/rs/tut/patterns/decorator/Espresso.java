@@ -3,13 +3,21 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package ru.rs.tut.patterns.observer;
+package ru.rs.tut.patterns.decorator;
 
 /**
  *
  * @author Admin
  */
-public interface Observer {
+public class Espresso extends Beverage {
 
-    public void update(int c);
+    public Espresso() {
+        setDescription("Espresso");
+    }
+
+    @Override
+    public double cost() {
+        return 1.11;
+    }
+
 }

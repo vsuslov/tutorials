@@ -3,13 +3,13 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package ru.rs.tut.patterns.observer;
+package ru.rs.tut.patterns.strategy;
 
 /**
  *
  * @author Admin
  */
-public interface Observer {
+public interface QuackBehavior {
 
-    public void update(int c);
+    public void quack();
 }
