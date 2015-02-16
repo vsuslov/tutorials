@@ -1,0 +1,62 @@
+package ru.vsuslov.xml;
+
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlRootElement;
+import java.math.BigDecimal;
+
+/**
+ * Created by vsuslov on 11/11/14.
+ */
+@Entity
+@XmlRootElement(name = "ValuteCursOnDate")
+public class ValuteCursOnDate {
+    @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    private Long id;
+
+    @XmlElement(name = "Vname")
+    private String vName;
+    @XmlElement(name = "Vnom")
+    private int vNom;
+    @XmlElement(name = "Vcurs")
+    private BigDecimal vCurs;
+    @XmlElement(name = "Vcode")
+    private String vCode;
+    @XmlElement(name = "VchCode")
+    private String vChCode;
+
+    @Override
+    public String toString() {
+        return "ValuteCursOnDate{" +
+                "vName=\'" + vName + '\'' +
+                ", vNom=" + vNom +
+                ", vCurs=" + vCurs +
+                ", vCode=\'" + vCode + '\'' +
+                ", vChCode=\'" + vChCode + '\'' +
+                '}';
+    }
+
+    public String getvName() {
+        return vName;
+    }
+
+    public int getvNom() {
+        return vNom;
+    }
+
+    public BigDecimal getvCurs() {
+        return vCurs;
+    }
+
+    public String getvCode() {
+        return vCode;
+    }
+
+    public String getvChCode() {
+        return vChCode;
+    }
+}
