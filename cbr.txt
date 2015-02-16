@@ -1,48 +1,106 @@
-public ValuteCursOnDate getCurs(String country) throws WsException{
+package ru.vsuslov;
 
+import org.apache.xerces.dom.ElementNSImpl;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+import ru.cbr.web.DailyInfo;
+import ru.cbr.web.DailyInfoSoap;
+import ru.cbr.web.GetCursOnDateResponse;
+import ru.vsuslov.utils.CountryUtils;
+import ru.vsuslov.xml.ValuteCursOnDate;
+
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBException;
+import javax.xml.bind.Unmarshaller;
+import javax.xml.datatype.DatatypeConfigurationException;
+import javax.xml.datatype.DatatypeFactory;
+import javax.xml.datatype.XMLGregorianCalendar;
+import javax.xml.transform.OutputKeys;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
+import java.util.GregorianCalendar;
+
+/**
+ * Created by vsuslov on 11/11/14.
+ *
+ * Как вариант, можно было реализовать через посылку SOAPMessage и получение ответа
+ * запись этих ответов в БД
+ * а логирование проще было сделать через Spring AOP
+ * добавить Appender к логеру который через dao сохранял бы логи в БД
+ */
+public class CbrClient {
+
+    /**
+     * метод для получение блока данных от ЦБ
+     * @param country наименование страны
+     * @return блок данных
+     * @throws WsException
+     */
+
+     public ValuteCursOnDate getCurs(String country) throws WsException{
         ValuteCursOnDate result=null;
-
         String valuteCode= CountryUtils.getValuteCode(country);
-
         if(valuteCode==null) throw new WsException("Отсутствует информация о стране в справочнике");
-
         GetCursOnDateResponse.GetCursOnDateResult request=cbrRequest();
 
         ElementNSImpl element=(ElementNSImpl)request.getAny();
-
         NodeList nodes=element.getElementsByTagName("VchCode");
-
         for(int i=0;i<nodes.getLength();i++) {
 
             Node node=nodes.item(i);
-
             String code=node.getFirstChild().getNodeValue();
-
             if(code.equals(valuteCode)) {
-
                 Node parent=node.getParentNode();
-
 //                printNode(parent);
-
                 try {
-
                     Unmarshaller unmarshaller = JAXBContext.newInstance(ValuteCursOnDate.class).createUnmarshaller();
 
                     result = (ValuteCursOnDate) unmarshaller.unmarshal(parent);
-
                 } catch(JAXBException jaxb) {
-
                     throw new WsException("Bad format from CBR web-service");
-
                 }
 
                 break;
-
             }
-
         }
 
       return result;
+    }
+
+    /**
+     * вспомогательный метод для отправки запроса веб службе ЦБ и получения результата
+     * @return ответ службы
+     */
+    private static GetCursOnDateResponse.GetCursOnDateResult cbrRequest() {
+        DailyInfo cbrService=new DailyInfo();
+        DailyInfoSoap port=cbrService.getDailyInfoSoap();
+        XMLGregorianCalendar now=null;
+        try{
+        DatatypeFactory dataFactory = DatatypeFactory.newInstance();
+        GregorianCalendar calendar=new GregorianCalendar();
+
+        now=dataFactory.newXMLGregorianCalendar(calendar);
+        } catch (DatatypeConfigurationException dce) {
+
+        }
+        return port.getCursOnDate(now);
 
     }
-///
+
+    /**
+     * метод для вывода XML Node
+     * @param node
+     * @throws Exception
+     */
+    private void printNode(Node node) throws Exception {
+        Transformer trans= TransformerFactory.newInstance().newTransformer();
+        trans.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION,"yes");
+        trans.setOutputProperty(OutputKeys.INDENT,"yes");
+
+        DOMSource source=new DOMSource(node);
+        StreamResult res=new StreamResult(System.out);
+        trans.transform(source,res);
+    }
+}
