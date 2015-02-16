@@ -1,0 +1,48 @@
+public ValuteCursOnDate getCurs(String country) throws WsException{
+
+        ValuteCursOnDate result=null;
+
+        String valuteCode= CountryUtils.getValuteCode(country);
+
+        if(valuteCode==null) throw new WsException("Отсутствует информация о стране в справочнике");
+
+        GetCursOnDateResponse.GetCursOnDateResult request=cbrRequest();
+
+        ElementNSImpl element=(ElementNSImpl)request.getAny();
+
+        NodeList nodes=element.getElementsByTagName("VchCode");
+
+        for(int i=0;i<nodes.getLength();i++) {
+
+            Node node=nodes.item(i);
+
+            String code=node.getFirstChild().getNodeValue();
+
+            if(code.equals(valuteCode)) {
+
+                Node parent=node.getParentNode();
+
+//                printNode(parent);
+
+                try {
+
+                    Unmarshaller unmarshaller = JAXBContext.newInstance(ValuteCursOnDate.class).createUnmarshaller();
+
+                    result = (ValuteCursOnDate) unmarshaller.unmarshal(parent);
+
+                } catch(JAXBException jaxb) {
+
+                    throw new WsException("Bad format from CBR web-service");
+
+                }
+
+                break;
+
+            }
+
+        }
+
+      return result;
+
+    }
+///
